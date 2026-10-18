@@ -1,0 +1,43 @@
+{
+  "name": "Pi-hole",
+  "version": "2026.09.0",
+  "slug": "pihole",
+  "description": "Network-wide DNS blocking using the unmodified official Pi-hole image",
+  "url": "https://github.com/danielcary/ha-pihole/tree/main/pihole",
+  "arch": ["aarch64", "amd64"],
+  "image": "pihole/pihole",
+  "legacy": true,
+  "init": false,
+  "startup": "services",
+  "boot": "auto",
+  "stage": "experimental",
+  "timeout": 30,
+  "backup": "cold",
+  "host_network": false,
+  "privileged": ["SETFCAP"],
+  "ports": {
+    "53/tcp": 53,
+    "53/udp": 53,
+    "80/tcp": 4865
+  },
+  "ports_description": {
+    "53/tcp": "DNS over TCP — keep host port 53 for router DNS",
+    "53/udp": "DNS over UDP — keep host port 53 for router DNS",
+    "80/tcp": "Pi-hole administration"
+  },
+  "webui": "http://[HOST]:[PORT:80]/admin/",
+  "watchdog": "http://[HOST]:[PORT:80]/admin/",
+  "map": [
+    {"type": "data", "path": "/etc/pihole", "read_only": false}
+  ],
+  "environment": {
+    "FTLCONF_dns_listeningMode": "ALL",
+    "FTLCONF_webserver_port": "80",
+    "FTLCONF_dhcp_active": "false",
+    "FTLCONF_ntp_ipv4_active": "false",
+    "FTLCONF_ntp_ipv6_active": "false",
+    "FTLCONF_ntp_sync_active": "false"
+  },
+  "options": {},
+  "schema": {}
+}

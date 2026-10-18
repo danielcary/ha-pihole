@@ -29,10 +29,10 @@ the app's logs and open the web interface. Test DNS from one device, then
 configure the router. Full instructions, backup details, and recovery steps
 are in [the installation guide](pihole/DOCS.md).
 
-Alternatively, after you publish this directory as your own Git repository,
-add its public repository URL in **App store → Repositories**. Home Assistant
-must be able to fetch the repository without signing in to GitHub. Publishing
-the repository does not change an existing local installation's update source.
+Alternatively, add **https://github.com/danielcary/ha-pihole** in
+**App store → Repositories**, then install Pi-hole from this repository.
+Adding the repository does not change an existing local installation's update
+source; see the update instructions below before migrating an installed app.
 
 ## Updates
 
@@ -64,3 +64,5 @@ your Mac's DNS or your router.
 The test does not boot Home Assistant OS or its Supervisor services. Installing
 the app on an actual Home Assistant OS device remains a separate acceptance
 check. See [validation notes](VALIDATION.md) for the recorded results.
+
+Co-authored by Codex.

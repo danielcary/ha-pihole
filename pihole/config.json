@@ -1,6 +1,6 @@
 {
   "name": "Pi-hole",
-  "version": "2026.09.0",
+  "version": "2026.10.0",
   "slug": "pihole",
   "description": "Network-wide DNS blocking using the unmodified official Pi-hole image",
   "url": "https://github.com/danielcary/ha-pihole/tree/main/pihole",

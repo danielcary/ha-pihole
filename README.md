@@ -5,7 +5,7 @@ image**. Point your router's DNS at your Home Assistant Pi's LAN IP to use
 network-wide DNS filtering.
 
 This repository is custom, not endorsed by Pi-hole or Home Assistant. The
-runtime is downloaded directly from `pihole/pihole:2026.09.0`; there is no
+runtime is downloaded directly from `pihole/pihole:2026.10.0`; there is no
 Dockerfile, third-party Pi-hole build, or custom startup script.
 
 | Service | Address |
@@ -36,7 +36,7 @@ source; see the update instructions below before migrating an installed app.
 
 ## Updates
 
-The app pins the official Pi-hole image to **2026.09.0**. New Pi-hole software
+The app pins the official Pi-hole image to **2026.10.0**. New Pi-hole software
 does not install automatically just because upstream publishes a release. The
 repository maintainer must update the image version and test it first.
 
@@ -51,6 +51,12 @@ See [the update guide](pihole/DOCS.md#updating-pi-hole) for the complete workflo
 
 ```sh
 python3 tests/verify.py
+```
+
+To also check an upgrade with data created by the previous official image:
+
+```sh
+python3 tests/verify.py --upgrade-from 2026.09.0
 ```
 
 Requires Python 3 and a running Docker engine with Internet access. It validates

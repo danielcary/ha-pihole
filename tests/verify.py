@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Exercise the app with official Supervisor and Pi-hole images. No dependencies."""
 
+import argparse
 import json
 import platform
 from pathlib import Path
@@ -124,7 +125,8 @@ def dns_query(port, name, tcp=False):
 
 
 class PiHole:
-    def __init__(self):
+    def __init__(self, version=None):
+        self.version = version or CONFIG["version"]
         self.name = "ha-pihole-test-" + uuid.uuid4().hex[:10]
         self.volume = self.name + "-data"
         self.password = None
@@ -154,7 +156,7 @@ class PiHole:
             args.extend(["--env", f"{key}={value}"])
         for port in CONFIG["ports"]:
             args.extend(["--publish", f"127.0.0.1::{port}"])
-        args.append(f"{CONFIG['image']}:{CONFIG['version']}")
+        args.append(f"{CONFIG['image']}:{self.version}")
         docker(*args)
         deadline = time.monotonic() + 180
         while time.monotonic() < deadline:
@@ -197,12 +199,14 @@ class PiHole:
         check(reply["session"]["valid"], "Pi-hole refused the admin password")
         self.sid = reply["session"]["sid"]
 
-    def recreate(self):
+    def recreate(self, version=None):
         docker("stop", "--time", str(CONFIG["timeout"]), self.name)
         state = json.loads(docker("inspect", "--format", "{{json .State}}", self.name))
         check(state["ExitCode"] == 0, "Pi-hole did not stop cleanly")
         docker("rm", self.name)
         self.sid = None
+        if version is not None:
+            self.version = version
         self.start()
 
     def cleanup(self):
@@ -210,10 +214,10 @@ class PiHole:
         docker("volume", "rm", self.volume, check=False)
 
 
-def smoke_test():
-    app = PiHole()
+def smoke_test(initial_version=None):
+    app = PiHole(initial_version)
     try:
-        print(f"Starting official {CONFIG['image']}:{CONFIG['version']}...", flush=True)
+        print(f"Starting official {CONFIG['image']}:{app.version}...", flush=True)
         app.start()
         print("PASS: DNS health check and admin page are ready", flush=True)
         # First boot must generate a password rather than expose an open admin UI.
@@ -257,13 +261,16 @@ def smoke_test():
         eventually(lambda: check(dns_query(app.ports["53/udp"], "blocked.example.com") == ["0.0.0.0"], "Denylist blocking failed"))
         print("PASS: a domain added through Pi-hole's API is blocked", flush=True)
 
-        app.recreate()
-        app.login()
-        check(dns_query(app.ports["53/udp"], "persisted.home.arpa") == ["192.0.2.42"], "Local DNS record was lost")
+        if initial_version:
+            print(f"Upgrading saved data from {initial_version} to {CONFIG['version']}...", flush=True)
+        app.recreate(version=CONFIG["version"])
+        eventually(app.login)
+        eventually(verify_dns)
         check(dns_query(app.ports["53/tcp"], "blocked.example.com", True) == ["0.0.0.0"], "Denylist entry was lost")
         configuration = app.api("/config")["config"]
         check(configuration["dns"]["upstreams"] == ["1.1.1.1", "1.0.0.1"], "Upstream settings were lost")
-        print("PASS: clean stop/recreation preserves password, DNS settings, and denylist", flush=True)
+        operation = "upgrade" if initial_version else "clean stop/recreation"
+        print(f"PASS: {operation} preserves password, DNS settings, and denylist", flush=True)
     except Exception:
         logs = docker("logs", "--tail", "60", app.name, check=False)
         logs = re.sub(r"(random password:)\s*\S+", r"\1 <redacted>", logs, flags=re.IGNORECASE)
@@ -276,6 +283,14 @@ def smoke_test():
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--upgrade-from", metavar="TAG",
+        help="also create data on an older official Pi-hole image and upgrade it to the app version",
+    )
+    args = parser.parse_args()
     validate_with_supervisor()
     smoke_test()
+    if args.upgrade_from:
+        smoke_test(initial_version=args.upgrade_from)
     print("All checks passed; temporary containers and volume removed.", flush=True)

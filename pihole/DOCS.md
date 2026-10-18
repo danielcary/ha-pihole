@@ -112,7 +112,7 @@ Removing the app and its data is different from restarting it.
 
 ## Updating Pi-hole
 
-The current app uses `pihole/pihole:2026.09.0`. The app version equals the
+The current app uses `pihole/pihole:2026.10.0`. The app version equals the
 upstream Docker tag because Supervisor uses it to select
 `pihole/pihole:<version>`. It never tracks the moving `latest` tag. A new
 upstream release is not installed until this package is updated to that release.
@@ -152,10 +152,13 @@ that this repository has published.
 2. Set `version` in `pihole/config.json` to the exact official Docker release
    tag. Update the changelog, documented version, and any configuration required
    by that release.
-3. Run `python3 tests/verify.py` with Docker. Record the tested image digests and
-   results in `VALIDATION.md`. These checks exercise the current host's
-   architecture and container recreation; they do not replace testing an
-   upgrade of a backed-up Home Assistant installation with existing data.
+3. Run `python3 tests/verify.py --upgrade-from PREVIOUS_DOCKER_TAG` with Docker,
+   replacing the placeholder with the previous app version. This checks fresh
+   startup and recreation of the new image, then upgrades data created by the
+   previous image. Record the tested image digests and results in
+   `VALIDATION.md`. These checks exercise the current host's architecture; they
+   do not replace testing a backed-up Home Assistant installation with its own
+   existing data.
 4. Commit and push the reviewed package. Existing local installations need the
    updated folder copied manually; repository installations can discover it
    through the app store.
@@ -180,5 +183,5 @@ that this repository has published.
 - [Official Pi-hole Docker documentation](https://docs.pi-hole.net/docker/)
 - [Official Pi-hole Docker configuration](https://docs.pi-hole.net/docker/configuration/)
 - [Official Pi-hole Docker updates](https://docs.pi-hole.net/docker/upgrading/)
-- [Pi-hole Docker 2026.09.0 release](https://github.com/pi-hole/docker-pi-hole/releases/tag/2026.09.0)
+- [Pi-hole Docker 2026.10.0 release](https://github.com/pi-hole/docker-pi-hole/releases/tag/2026.10.0)
 - [Home Assistant app configuration](https://contributors.home-assistant.io/apps/reference/configuration/)
